@@ -1,0 +1,11 @@
+subject_to_delete = [
+]
+subject_to_delete_regex = [
+]
+body_to_delete = [
+]
+body_to_delete_regex = [
+]
+
+# contains ('from','subject')
+ignore_mails_from = []
