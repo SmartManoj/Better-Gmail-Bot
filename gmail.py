@@ -148,7 +148,7 @@ You are receiving this because you were mentioned.
                 body = body[:500]
             with open('ignore.txt', 'r') as f:
                 ignore_text = f.read()
-            if not forward_mail and not ignore_text in body and not any(i in from_address for i in mails_to_ignore) and not any(i in subject for i in subject_to_ignore) and not any(i in from_address for i in domains_to_ignore):
+            if not forward_mail and not ignore_text in body and not any(i in from_address for i in mails_to_ignore) and not any(i.lower() in subject.lower() for i in subject_to_ignore) and not any(i in from_address for i in domains_to_ignore):
                 asyncio.run(send_telegram_message(from_address, subject, body))
             # print(a)
             service.users().messages().modify(
