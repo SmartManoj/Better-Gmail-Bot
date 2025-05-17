@@ -3,3 +3,6 @@ token.json
 .env
 config.py
 __pycache__/config.cpython-311.pyc
+/__pycache__
+body.txt
+ignore.txt
