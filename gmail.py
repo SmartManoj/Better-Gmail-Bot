@@ -29,13 +29,13 @@ async def send_telegram_message(from_address, subject, body, chat_id=TELEGRAM_CH
     bot = Bot(token=TELEGRAM_TOKEN)
     # encode <> to html entities
     text = f'📧 {from_address}\n{subject}\n\n{body}'
-    text = re.sub(r'[_*[\]()~>#\+\-=|{}.!]', lambda x: '\\' + x.group(), text)
-    text = text[:4096]
+    original_text = text[:4096]
+    escaped_text = re.sub(r'[_*[\]()~>#\+\-=|{}.!]', lambda x: '\\' + x.group(), text)[:4096]
     try:
-        await bot.send_message(chat_id=chat_id, text=text, parse_mode='markdownv2')
+        await bot.send_message(chat_id=chat_id, text=escaped_text, parse_mode='markdownv2')
     except Exception as e:
         print(e)
-        await bot.send_message(chat_id=chat_id, text=text)
+        await bot.send_message(chat_id=chat_id, text=original_text)
 
 # asyncio.run(send_telegram_message('test', 'test', 'test'))
 # send_message('test', 'test', 'test');exit()
