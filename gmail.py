@@ -15,6 +15,7 @@ from googleapiclient.errors import HttpError
 import requests
 from pymsgbox import alert
 from telegram import Bot
+from telegram.request import HTTPXRequest
 from dotenv import load_dotenv
 import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -24,14 +25,32 @@ load_dotenv()
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 TELEGRAM_GROUP_CHAT_ID = os.getenv('TELEGRAM_GROUP_CHAT_ID')
+TELEGRAM_OTP_GROUP_CHAT_ID = os.getenv('TELEGRAM_OTP_GROUP_CHAT_ID')
+
+# Proxy for the Telegram Bot API (used when api.telegram.org is blocked).
+# Set TELEGRAM_PROXY to e.g. socks5://host:port or http://host:port; falls
+# back to bot_proxy.txt (host:port, assumed socks5). Leave unset to go direct.
+TELEGRAM_PROXY = os.getenv('TELEGRAM_PROXY')
+if not TELEGRAM_PROXY and os.path.exists('bot_proxy.txt'):
+    _p = open('bot_proxy.txt').read().strip()
+    if _p:
+        TELEGRAM_PROXY = _p if '://' in _p else 'socks5://' + _p
+
+def make_bot():
+    if TELEGRAM_PROXY:
+        return Bot(token=TELEGRAM_TOKEN, request=HTTPXRequest(proxy=TELEGRAM_PROXY))
+    return Bot(token=TELEGRAM_TOKEN)
 
 async def send_telegram_message(from_address, subject, body, chat_id=TELEGRAM_CHAT_ID):
-    bot = Bot(token=TELEGRAM_TOKEN)
+    bot = make_bot()
     # encode <> to html entities
     text = f'📧 {from_address}\n{subject}\n\n{body}'
     original_text = text[:4096]
     escaped_text = re.sub(r'[_*[\]()~>#\+\-=|{}.!]', lambda x: '\\' + x.group(), text)[:4096]
     try:
+        et = escaped_text.lower()
+        if 'otp' in et and not 'jana' in et:
+            await bot.send_message(chat_id=TELEGRAM_OTP_GROUP_CHAT_ID, text=escaped_text)
         await bot.send_message(chat_id=chat_id, text=escaped_text, parse_mode='markdownv2')
     except Exception as e:
         print(e)
