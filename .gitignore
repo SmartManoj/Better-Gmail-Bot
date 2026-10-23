@@ -6,3 +6,4 @@ __pycache__/config.cpython-311.pyc
 /__pycache__
 body.txt
 ignore.txt
+custom.py

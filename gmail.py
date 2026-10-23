@@ -22,6 +22,11 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from config import subject_to_delete, subject_to_delete_regex, body_to_delete, body_to_delete_regex, subject_to_forward, mails_to_delete, mails_to_delete_with_subject, mails_to_ignore, subject_to_ignore, mails_to_ignore_with_subject, domains_to_ignore
 load_dotenv()
 
+try:
+    import custom
+except ImportError:
+    custom = None
+
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 TELEGRAM_GROUP_CHAT_ID = os.getenv('TELEGRAM_GROUP_CHAT_ID')
@@ -134,8 +139,13 @@ def get_mail():
         forward_mail = any(s in subject for s in subject_to_forward)
         # body = BeautifulSoup(body, 'html.parser').get_text()
         body = md(body)
+        body = body.encode('utf-8', 'replace').decode('utf-8')
         with open('body.txt', 'w') as f:
             f.write(body)
+        if custom:
+            handled = custom.process(from_address, subject, body, msg, service)
+            if handled:
+                print('custom handled:', handled)
         forward_mail = False
         if forward_mail:
             print('forwarding', subject)
