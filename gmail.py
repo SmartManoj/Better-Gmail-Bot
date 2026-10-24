@@ -22,6 +22,41 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from config import subject_to_delete, subject_to_delete_regex, body_to_delete, body_to_delete_regex, subject_to_forward, mails_to_delete, mails_to_delete_with_subject, mails_to_ignore, subject_to_ignore, mails_to_ignore_with_subject, domains_to_ignore
 load_dotenv()
 
+# Tee stdout/stderr to a daily-rotated bot.log (keeps 7 days) so every print
+# and traceback survives past the live console.
+import logging
+import sys
+from logging.handlers import TimedRotatingFileHandler
+
+_log_handler = TimedRotatingFileHandler(
+    'bot.log', when='midnight', backupCount=7, encoding='utf-8'
+)
+_log_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
+_logger = logging.getLogger('bot')
+_logger.setLevel(logging.INFO)
+_logger.addHandler(_log_handler)
+
+
+class _Tee:
+    def __init__(self, stream):
+        self.stream = stream
+        self._buf = ''
+
+    def write(self, data):
+        self.stream.write(data)
+        self._buf += data
+        while '\n' in self._buf:
+            line, self._buf = self._buf.split('\n', 1)
+            if line.strip():
+                _logger.info(line)
+
+    def flush(self):
+        self.stream.flush()
+
+
+sys.stdout = _Tee(sys.stdout)
+sys.stderr = _Tee(sys.stderr)
+
 try:
     import custom
 except ImportError:

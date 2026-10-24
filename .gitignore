@@ -7,3 +7,5 @@ __pycache__/config.cpython-311.pyc
 body.txt
 ignore.txt
 custom.py
+bot.log
+bot.log.*
